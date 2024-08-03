@@ -56,6 +56,8 @@ for url in urls:
         if article_content:
             article_list.append(article_content)
 
+print(article_list[0])
+
 
             
 
