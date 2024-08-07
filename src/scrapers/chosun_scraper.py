@@ -4,6 +4,7 @@ import json
 import re
 from bs4 import BeautifulSoup
 import csv
+import pandas as pd
 
 def get_html_source(url):
     try:
@@ -60,18 +61,22 @@ def save_to_csv(article_list, filename):
             writer.writerow(article)
 
 article_list = []
-urls = [
-    'https://www.chosun.com/opinion/editorial/2024/08/02/YAKPOY2HNFCYRJDBAVA4KT3FLQ/', 
-    'https://www.chosun.com/opinion/editorial/2024/08/01/74ICUQOVRNE27J5LZV3AZOINMI/',
-    'https://www.chosun.com/opinion/editorial/2024/08/02/GK5NZZLCCBEEPH4GMUDKPAVSW4/'
-] 
 
-for url in urls:
+file_path = 'src/scrapers/chosun.csv'  # Replace this with the correct path to your Excel file
+# Read the Excel file into a DataFrame
+df = pd.read_csv(file_path)
+# Extract the URLs from the 'URL' column
+urls = df['URL'].tolist()
+
+total_urls = len(urls)
+for i, url in enumerate(urls):
     html_source = get_html_source(url)
     if html_source:
         article_content = get_article_content(html_source)
         if article_content:
             article_list.append([url, article_content])
 
+    print(f"진행 상태: {i}/{total_urls} ({(i/total_urls)*100:.2f}%) 완료")
+
 # CSV 파일로 저장
-save_to_csv(article_list, 'chosun.csv')
+save_to_csv(article_list, 'chosun_article.csv')
