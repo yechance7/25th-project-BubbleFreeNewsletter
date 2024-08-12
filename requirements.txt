@@ -1,0 +1,10 @@
+# 패키지 설치
+git+https://github.com/KPFBERT/kpfbert.git
+
+# PyPI에서 패키지 설치
+torch>=1.4.0
+transformers>=4.9.2 
+mlflow
+tqdm
+datetime
+heapq
