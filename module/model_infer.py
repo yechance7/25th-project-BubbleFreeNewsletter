@@ -1,6 +1,7 @@
 #단일 문장 혹은 문단을 추론하고 싶으면 아래 코드 이용
 
 import torch
+import torch.nn as nn
 from transformers import BertForSequenceClassification, BertTokenizer
 
 model_name_or_path = "bubble_free_BERT"
