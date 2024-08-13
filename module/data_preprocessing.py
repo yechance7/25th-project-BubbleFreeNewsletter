@@ -43,9 +43,7 @@ if __name__ == '__main__':
     df.dropna(inplace=True)
     df.drop_duplicates(inplace=True)
     df['Article'] = df['Article'].apply(clean_text)
-    df.to_csv(os.path.join(output_dir,'train_articles_processed.csv'), index=False)
 
     down_df = downsampling(df)
 
-    label_counts = down_df['label'].value_counts()
-    print(label_counts)
+    down_df.to_csv(os.path.join(output_dir,'train_articles_processed.csv'), index=False)
