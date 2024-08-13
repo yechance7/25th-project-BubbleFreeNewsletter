@@ -12,3 +12,11 @@ tempCodeRunnerFile.py
 /src/article_data/trian_articles_processed.csv
 /src/article_data/trian_articles_processed.csv.zip
 /src/test
+
+ybigta
+.gitignore
+
+### source ybigta/bin/activate
+
+json
+wandb

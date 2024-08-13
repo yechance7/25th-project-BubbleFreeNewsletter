@@ -27,7 +27,7 @@ def train_and_evaluate(model_name, file_path, num_labels, max_len, learning_rate
 
     # Initialize W&B run
     wandb.init(project="Kpf-BERT-finetuning", name=run_id, entity= "25th-project-BubbleFreeNewsletter" )
-    wandb.run.name = "yechan" + run_id
+    wandb.run.name = "yechan " + run_id
 
     top_k_checkpoints = []
     heapq.heapify(top_k_checkpoints)
@@ -42,7 +42,7 @@ def train_and_evaluate(model_name, file_path, num_labels, max_len, learning_rate
     val_texts, val_labels = val_df['Article'].values, val_df['label'].values
 
     # Tokenizer
-    tokenizer = BertTokenizer.from_pretrained(model_name)
+    tokenizer = BertTokenizer.from_pretrained(model_name, use_auth_token=True)
 
     train_dataset = TextDataset(train_texts, train_labels, tokenizer, max_len)
     val_dataset = TextDataset(val_texts, val_labels, tokenizer, max_len)
@@ -60,10 +60,7 @@ def train_and_evaluate(model_name, file_path, num_labels, max_len, learning_rate
     wandb.config.update({
         "learning_rate": learning_rate,
         "batch_size": batch_size,
-        "epochs": epochs,
-        "model_name": model_name,
-        "max_len": max_len,
-        "num_labels": num_labels
+        "epochs": epochs
     })
 
     for epoch in range(epochs):
@@ -175,11 +172,11 @@ if __name__ == "__main__":
 '''
 실행방법
 
-wandb sweep config.yaml   
-으로 sweep을 생성하면 위에서 sweep_id 알려줄꺼임
+1. 터미널에 해당 명령어로 sweep을 생성하면 sweep_id 알려줄꺼임
+wandb sweep module/config.yaml   
 
+2. sweep 시작: 이름 + 날짜로 생성됨
 wandb agent 25th-project-BubbleFreeNewsletter/Kpf-BERT-finetuning/<sweep_id>
 
-이름 + 날짜로 생성됨
 
 '''
