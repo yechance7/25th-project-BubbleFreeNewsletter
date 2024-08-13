@@ -24,7 +24,7 @@ def train_and_evaluate(model_name, file_path, num_labels, max_len, learning_rate
 
     # Load data
     train_df = pd.read_csv(f'{file_path}/train.csv')    #train
-    val_df = pd.read_csv(f'{file_path}/val.csv')        #validation
+    val_df = pd.read_csv(f'{file_path}/valid.csv')        #validation
     test_df = pd.read_csv(f'{file_path}/test.csv')      #test
 
     # Extract texts and labels
@@ -133,11 +133,11 @@ if __name__ == "__main__":
 
     #hyperparameter 설정
     args = ["--model_path", "kpfbert",
-            "--train_data_path", "src/article_data/trian_articles_processed.csv", 
+            "--train_data_path", "src/data", 
             "--num_classes", "3",
             "--max_len", "512",
             "--lr", "1e-5",
-            "--batch_size", "32",
+            "--batch_size", "16",
             "--epoch", "5"]
 
     arg = get_args(args)
