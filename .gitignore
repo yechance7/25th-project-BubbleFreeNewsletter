@@ -8,7 +8,8 @@ tempCodeRunnerFile.py
 .mypy_cache
 /25*pdf
 /bubble_free_news.ipynb
-/src/article_data/train_articles.csv
-/src/article_data/trian_articles_processed.csv
+/src/article_data/train_article.csv
+/src/article_data/train_articles_processed.csv
 /src/article_data/trian_articles_processed.csv.zip
+/src/data/
 /src/test
