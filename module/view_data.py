@@ -24,5 +24,5 @@ def view_data(file_path):
 
 
 if __name__ == "__main__":
-    file_path = '../src/data'
+    file_path = 'src/data'
     view_data(file_path)
