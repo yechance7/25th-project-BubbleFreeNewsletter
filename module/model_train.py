@@ -23,24 +23,17 @@ def train_and_evaluate(model_name, file_path, num_labels, max_len, learning_rate
     heapq.heapify(top_k_checkpoints)
 
     # Load data
-    df = pd.read_csv(file_path, encoding='utf-8')
-    texts = df['Article'].values
-    labels = df['label'].values
+    train_df = pd.read_csv(f'{file_path}/train.csv')    #train
+    val_df = pd.read_csv(f'{file_path}/valid.csv')        #validation
+    test_df = pd.read_csv(f'{file_path}/test.csv')      #test
 
-    train_texts, temp_texts, train_labels, temp_labels = train_test_split(
-        texts,
-        labels,
-        test_size=0.2,
-        random_state=42
-    )
+    # Extract texts and labels
+    train_texts, train_labels = train_df['Article'].values, train_df['label'].values
+    val_texts, val_labels = val_df['Article'].values, val_df['label'].values
+    # not used
+    #test_texts, test_labels = test_df['Article'].values, test_df['label'].values
 
-    val_texts, test_texts, val_labels, test_labels = train_test_split(
-        temp_texts,
-        temp_labels,
-        test_size=0.5,
-        random_state=42
-    )
-
+    #Tokenizer
     tokenizer = BertTokenizer.from_pretrained(model_name)
 
     train_dataset = TextDataset(train_texts, train_labels, tokenizer, max_len)
@@ -140,11 +133,11 @@ if __name__ == "__main__":
 
     #hyperparameter 설정
     args = ["--model_path", "kpfbert",
-            "--train_data_path", "src/article_data/trian_articles_processed.csv", 
+            "--train_data_path", "src/data", 
             "--num_classes", "3",
             "--max_len", "512",
             "--lr", "1e-5",
-            "--batch_size", "32",
+            "--batch_size", "16",
             "--epoch", "5"]
 
     arg = get_args(args)
