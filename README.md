@@ -25,7 +25,7 @@ TO ADD.
     
 
 ## Team Operation and Collaboration
-- **Documentation**: For detailed team information, refer to [TEAM](docs/team.md). Our team meeting logs are available at [Meetings](docs/meetings.md).
+- **Documentation**: For detailed team information, refer to [TEAM](docs/TEAM.md). Our team meeting logs are available at [Meetings](docs/meetings.md).
 ## Contributing
 
 - **Cooperation**: For the cooperation rules, please review our [Collaboration Guidelines](docs/CONTRIBUTING.md) for details on how to participate.
