@@ -1,6 +1,6 @@
 # 25th-project-BubbleFreeNewsletter
 25기 신입기수 프로젝트 - 필터버블 해소를 위한 뉴스레터 <br />
-Please refer to [필터버블 해소를 위한 뉴스레터](docs/Project.pdf) for detailed project information.
+Please refer to [필터버블 해소를 위한 뉴스레터](docs/PROJECT.pdf) for detailed project information.
 ## Prerequisites
 - python ==
 - pytorch == 
@@ -26,7 +26,7 @@ TO ADD.
 
 ## Team Operation and Collaboration
 - **Documentation**: <br>
-For detailed team information, refer to [TEAM](docs/TEAM.md). <br>Our team meeting logs are available at [MEETINGS](docs/meetings.md).
+For detailed team information, refer to [TEAM](docs/TEAM.md). <br>Our team meeting logs are available at [MEETINGS](docs/MEETINGS.md).
 ## Contributing
 
 - **Cooperation**: <br>
