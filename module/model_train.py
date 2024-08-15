@@ -42,7 +42,7 @@ def train_and_evaluate(model_name, file_path, num_labels, max_len, learning_rate
     val_texts, val_labels = val_df['Article'].values, val_df['label'].values
 
     # Tokenizer
-    tokenizer = BertTokenizer.from_pretrained(model_name, use_auth_token=True)
+    tokenizer = BertTokenizer.from_pretrained(model_name)
 
     train_dataset = TextDataset(train_texts, train_labels, tokenizer, max_len)
     val_dataset = TextDataset(val_texts, val_labels, tokenizer, max_len)
