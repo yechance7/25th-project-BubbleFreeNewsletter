@@ -1,6 +1,0 @@
-Host ybigta2024summer
-    HostName 165.132.46.85
-    User root
-    Port 32178
-    IdentityFile ~/.ssh/id_ed25519
-
