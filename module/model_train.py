@@ -29,6 +29,10 @@ def train_and_evaluate(model_name, file_path, num_labels, max_len, learning_rate
     wandb.init(project="Kpf-BERT-finetuning", name=run_id, entity= "25th-project-BubbleFreeNewsletter" )
     wandb.run.name = "yechan " + run_id
 
+    learning_rate = wandb.config.learning_rate#arg.lr
+    batch_size = wandb.config.batch_size#arg.batch_size
+    epochs = wandb.config.epochs#arg.epoch
+
     top_k_checkpoints = []
     heapq.heapify(top_k_checkpoints)
 
@@ -143,10 +147,10 @@ if __name__ == "__main__":
     # Hyperparameter 설정
     args = ["--model_path", "kpfbert",
             "--train_data_path", "src/data", 
-            "--num_classes", "3",
+            "--num_classes", "2",
             "--max_len", "512",
             "--lr", "1e-5",
-            "--batch_size", "16",
+            "--batch_size", "32",
             "--epoch", "5"]
 
     arg = get_args(args)
