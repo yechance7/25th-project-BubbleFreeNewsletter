@@ -15,9 +15,7 @@ model.eval()
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 model.to(device)
 
-sentence = '''
-저는 뚱이에요
-'''
+sentence = ""
 
 inputs = tokenizer(sentence, return_tensors="pt", max_length=128, truncation=True, padding="max_length")
 

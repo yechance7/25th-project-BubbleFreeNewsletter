@@ -1,0 +1,20 @@
+program: module/model_train.py
+name: sweep
+description: model sweep
+project: Kpf-BERT-finetuning
+entity: 25th-project-BubbleFreeNewsletter
+method: bayes
+metric:
+  name: val_loss
+  goal: minimize
+
+parameters:
+  learning_rate:
+    distribution: uniform
+    min: 1e-6
+    max: 1e-4
+  batch_size:
+    values: [8, 16, 32]
+  epochs:
+    values: [5, 8, 10]
+  

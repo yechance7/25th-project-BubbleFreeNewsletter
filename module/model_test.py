@@ -1,30 +1,35 @@
-#단일 문장 혹은 문단을 추론하고 싶으면 아래 코드 이용
+#모델 성능 지표 평가
 
 import torch
 import torch.nn as nn
 from transformers import BertForSequenceClassification, BertTokenizer
-from dataset import TextDataset
 from torch.utils.data import DataLoader
 import pandas as pd
-from sklearn.metrics import confusion_matrix, recall_score
-import tqdm
+from sklearn.metrics import accuracy_score, precision_score, confusion_matrix, recall_score, f1_score
+from tqdm import tqdm
+from dataset import TextDataset
+from test_plot import plot_metrics
 from args import get_args
 
-def test(model_name, file_path, num_labels, max_len, batch_size):
-    #val_loss가 가장 적은 checkpoint 가져오기
-    model = BertForSequenceClassification.from_pretrained(model_name, num_labels=num_labels)
-    tokenizer = BertTokenizer.from_pretrained(model_name)
 
-    checkpoint_path = "/content/checkpoints/20240809_014107/model_epoch_1_val_loss_0.0278.pt"
-    model.load_state_dict(torch.load(checkpoint_path))
+def test(model_path, data_path, ckpt, num_labels, max_len, batch_size):
+    #val_loss가 가장 적은 checkpoint 가져오기
+    model = BertForSequenceClassification.from_pretrained(model_path, num_labels=num_labels)
+    tokenizer = BertTokenizer.from_pretrained(model_path)
+
+    checkpoint_path = ckpt
+    state_dict = torch.load(checkpoint_path)
+
+    # 모델에 state_dict 로드
+    model.load_state_dict(state_dict)
 
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model.to(device)
 
-    test_df = pd.read_csv(f'{file_path}/test.csv') 
+    test_df = pd.read_csv(f'{data_path}/test.csv')
     test_texts, test_labels = test_df['Article'].values, test_df['label'].values
-    tokenizer = BertTokenizer.from_pretrained(model_name)
+    tokenizer = BertTokenizer.from_pretrained(model_path)
     test_dataset = TextDataset(test_texts, test_labels, tokenizer, max_len)
     test_dataloader = DataLoader(test_dataset, batch_size=batch_size, shuffle=False)
 
@@ -55,43 +60,42 @@ def test(model_name, file_path, num_labels, max_len, batch_size):
 
             test_progress_bar.set_postfix({"accuracy": correct / total})
 
-    recall = recall_score(all_labels, all_predictions, average='weighted')
     conf_matrix = confusion_matrix(all_labels, all_predictions)
+    accuracy = accuracy_score(all_labels, all_predictions)
+    precision = precision_score(all_labels, all_predictions, average='macro')
+    recall = recall_score(all_labels, all_predictions, average='macro')
+    f1 = f1_score(all_labels, all_predictions, average='macro')
 
-    accuracy = correct / total
+    # Print metrics
     print(f'Test Accuracy: {accuracy}')
+    print(f'Test Precision: {precision}')
     print(f'Test Recall: {recall}')
+    print(f'Test F1 Score: {f1}')
     print('Confusion Matrix:')
     print(conf_matrix)
 
-    class_recall = []
-    for i in range(conf_matrix.shape[0]):
-        true_positive = conf_matrix[i, i]
-        false_negative = sum(conf_matrix[i, :]) - true_positive
-        recall_value = true_positive / (true_positive + false_negative) if (true_positive + false_negative) > 0 else 0
-        class_recall.append(recall_value)
+    # Plot metrics
+    plot_metrics(conf_matrix, accuracy, precision, recall, f1)
 
-    average_recall = sum(class_recall) / len(class_recall)
 
-    print("Class-wise Recall:", class_recall)
-    print("Average Recall:", average_recall)
 
 if __name__ == "__main__":
     args= [
-        "--model_name", "kpfbert",
-        "--file_path", "src/data",
-        "--num_labels", "2",
+        "--model_path", "kpfbert",
+        "--data_path", "src/data",
+        "--num_classes", "2",
         "--max_len", "512",
         "--batch_size", "16"
     ]
     arg = get_args(args)
 
-    model_name = arg.model_name
-    file_path = arg.file_path
-    num_labels = arg.num_labels
+    model_path = arg.model_path
+    data_path = arg.data_path
+    num_labels = arg.num_classes
     max_len = arg.max_len
     batch_size = arg.batch_size
+    ckpt = 'checkpoints/20240816_122359/model_epoch_4_val_loss_0.1095.pt'
 
-    test(model_name, file_path, num_labels, max_len, batch_size)
+    test(model_path, data_path, ckpt, num_labels, max_len, batch_size)
    
     
