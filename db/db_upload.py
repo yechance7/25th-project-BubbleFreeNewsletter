@@ -4,16 +4,27 @@ import configparser
 import mysql.connector
 from mysql.connector import Error
 
-
 # 여러 JSON 파일 경로 리스트
-data_path = "/home/yechance7/25th-project-BubbleFreeNewsletter/db/json"
+data_path = "json/"
 json_files = [
+    os.path.join(data_path, "chosun.json"),
+    os.path.join(data_path, "donga.json"),
     os.path.join(data_path, "hani.json"),
+    os.path.join(data_path, "joongang.json"),
+    os.path.join(data_path, "khan.json"),
 ]
 
+# 각 신문사의 prefix
+news_prefixes = {
+    "chosun": "c",
+    "donga": "d",
+    "hani": "h",
+    "joongang": "j",
+    "khan": "k"
+}
 
 # 데이터베이스 설정
-config_path = "/home/yechance7/25th-project-BubbleFreeNewsletter/db"
+config_path = "."
 config_file = os.path.join(config_path, "db.ini")
 
 # ConfigParser 객체 생성 및 설정 파일 읽기
@@ -33,17 +44,17 @@ def create_database(cursor):
 
 def create_table(cursor):
     """
-    테이블 생성
+    테이블 생성 (keyword 열 추가)
     """
     try:
         cursor.execute(
             """
             CREATE TABLE IF NOT EXISTS article (
-                article_id INT PRIMARY KEY,
+                article_id VARCHAR(255) PRIMARY KEY,
                 title TEXT,
+                keyword TEXT,
                 content TEXT,
-                date DATE,
-                news_company_id INT
+                date INT
             )
             """
         )
@@ -51,31 +62,32 @@ def create_table(cursor):
     except Error as err:
         print(f"테이블 생성 오류: {err}")
 
-def insert_json_to_table(cursor, json_file_path):
+def insert_json_to_table(cursor, json_file_path, prefix):
     """
     JSON 데이터를 테이블에 삽입하는 함수
     """
     try:
         with open(json_file_path, "r", encoding="UTF-8") as file:
             json_list = json.load(file)
-            for json_data in json_list:
+            for idx, json_data in enumerate(json_list, 1):
+                article_id = f"{prefix}{idx}"  # 신문사 prefix와 번호를 결합하여 article_id 생성
+                title = json_data.get("제목")
+                keyword = json_data.get("키워드")
+                content = json_data.get("Article", "")
+                content = content if content else json_data.get("본문")  # content가 빈 문자열이면 "본문"으로 설정
+                date = json_data.get("일자")
+
                 cursor.execute(
                     """
-                    INSERT INTO article (article_id, title, content, date, news_company_id)
+                    INSERT INTO article (article_id, title, keyword, content, date)
                     VALUES (%s, %s, %s, %s, %s)
                     ON DUPLICATE KEY UPDATE 
                         title=VALUES(title),
+                        keyword=VALUES(keyword),
                         content=VALUES(content),
-                        date=VALUES(date),
-                        news_company_id=VALUES(news_company_id)
+                        date=VALUES(date)
                     """,
-                    (
-                        json_data["article_id"],
-                        json_data.get("title"),
-                        json_data.get("content"),
-                        json_data.get("date"),
-                        json_data.get("news_company_id"),
-                    )
+                    (article_id, title, keyword, content, date)
                 )
             print(f"{json_file_path}의 데이터가 성공적으로 삽입되었습니다.")
     except (Error, IOError) as err:
@@ -86,7 +98,8 @@ def insert_all_json_to_db(cursor, json_files):
     모든 JSON 파일을 데이터베이스에 삽입
     """
     for json_file in json_files:
-        insert_json_to_table(cursor, json_file)
+        prefix = news_prefixes.get(os.path.basename(json_file).split(".")[0], "unknown")
+        insert_json_to_table(cursor, json_file, prefix)
     print("모든 데이터가 데이터베이스에 삽입되었습니다.")
 
 try:
@@ -117,4 +130,3 @@ finally:
         print("연결이 종료되었습니다.")
 
 print("done!")
-

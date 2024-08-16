@@ -4,3 +4,10 @@ mlflow
 tqdm
 datetime
 heapq
+
+streamlit
+requests
+mysql-connector-python
+sqlalchemy
+fastapi
+uvicorn
