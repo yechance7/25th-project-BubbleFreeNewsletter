@@ -51,3 +51,22 @@ if st.button("조회"):
             st.write(f"내용: {article['content']}")
         else:
             st.error("기사를 찾을 수 없습니다.")
+
+
+
+'''
+streamlit_demo.py
+fast api에 get 요청을 하여 해당 조건에 맞는 기사 가져옴
+
+local에서는 결과확인 잘됨.
+github에 올리고 streamlit cloud 활용하면 배포가능하지만,  local 기준으로 백이랑 db가 설정되어 있어서 배포 불가 - 추후 바꿔야됨
++ github에 올릴시에 배포가 가능하나 ybigta organization에 올라가 있을때는 안됨 -> 본인계정에 fork하면 배포 가능
+
+실행방법:
+streamlit run be/streamlit_demo.py
+
+향후 개선방안
+- stramlit이 파이썬과 호완성 좋고 빠르게 짤 수 있지만 예쁘게 꾸밀수 있는데 한계가 있고 로그인 기능 구현이 매우 복잡(예시 코드 가진게 있어서 할 수는 있는데 이번 프로젝트에서는 굳이?) 
+- react로 선회
+
+'''
