@@ -15,7 +15,7 @@ model.eval()
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 model.to(device)
 
-sentence = "27일 TV조선은 ‘이것 밖에 방법이 없어’라는 내용의 유서 일부를 공개했다."
+sentence = ""
 
 inputs = tokenizer(sentence, return_tensors="pt", max_length=128, truncation=True, padding="max_length")
 
