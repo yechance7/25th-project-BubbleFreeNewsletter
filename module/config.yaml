@@ -1,12 +1,30 @@
+<<<<<<< HEAD
 program: module/model_train.py
+=======
+<<<<<<< HEAD
+program: model_train.py
+=======
+program: module/model_train.py
+>>>>>>> 52c31ca (debug and add test_plot.py)
+>>>>>>> a4b22b8 (solve merge conflict)
 name: sweep
 description: model sweep
 project: Kpf-BERT-finetuning
 entity: 25th-project-BubbleFreeNewsletter
 method: bayes
 metric:
+<<<<<<< HEAD
   name: val_loss
   goal: minimize
+=======
+<<<<<<< HEAD
+  name: valid_auc_epoch
+  goal: maximize
+=======
+  name: val_loss
+  goal: minimize
+>>>>>>> 52c31ca (debug and add test_plot.py)
+>>>>>>> a4b22b8 (solve merge conflict)
 
 parameters:
   learning_rate:
@@ -16,5 +34,13 @@ parameters:
   batch_size:
     values: [8, 16, 32]
   epochs:
+<<<<<<< HEAD
     values: [5, 8, 10]
+=======
+<<<<<<< HEAD
+    values: [3, 5, 10]
+=======
+    values: [5, 8, 10]
+>>>>>>> 52c31ca (debug and add test_plot.py)
+>>>>>>> a4b22b8 (solve merge conflict)
   

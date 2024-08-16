@@ -29,10 +29,19 @@ def train_and_evaluate(model_name, file_path, num_labels, max_len, learning_rate
     wandb.init(project="Kpf-BERT-finetuning", name=run_id, entity= "25th-project-BubbleFreeNewsletter" )
     wandb.run.name = "yechan " + run_id
 
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+=======
+>>>>>>> a4b22b8 (solve merge conflict)
     learning_rate = wandb.config.learning_rate#arg.lr
     batch_size = wandb.config.batch_size#arg.batch_size
     epochs = wandb.config.epochs#arg.epoch
 
+<<<<<<< HEAD
+=======
+>>>>>>> 52c31ca (debug and add test_plot.py)
+>>>>>>> a4b22b8 (solve merge conflict)
     top_k_checkpoints = []
     heapq.heapify(top_k_checkpoints)
 
