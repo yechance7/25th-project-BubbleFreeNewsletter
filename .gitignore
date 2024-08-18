@@ -14,8 +14,11 @@ tempCodeRunnerFile.py
 src/article_data/train_article.csv.zip
 /src/data/
 /src/test
-ybigta
+
+
 .gitignore
+.vscode
+ybigta
 ### source ybigta/bin/activate
 json
-wandb
+fe/node_modules
