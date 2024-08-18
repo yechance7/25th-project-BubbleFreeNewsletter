@@ -1,7 +1,7 @@
 // fe/api.js
 import axios from 'axios';
 
-const API_URL = 'http://localhost:8000';  // FastAPI 서버의 URL
+const API_URL = 'http://127.0.0.1:8000';  // FastAPI 서버의 URL
 
 export const searchByTitle = async (query) => {
     try {
