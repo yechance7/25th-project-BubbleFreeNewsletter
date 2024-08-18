@@ -5,6 +5,21 @@ from sqlalchemy.orm import sessionmaker, Session
 import configparser
 import os
 
+
+'''
+api_upload.py: 활성화시 SQLAlchemy 바탕으로 데이터베이스와 연결 get 요청에 응답하여 해당하는 기사 가져다줌
+
+실행방법:
+python api_upload.py
+uvicorn api_upload:app --reload
+두 개 다 실행되어야함. 터미널 유지해야 돌아감
+
+향후 개선방안
+- 추후에 모델 불러오는것 추가
+- 모델을 바탕으로 어떠한 방식으로 기사데이터를 보여줄건지 자세한 로직
+
+'''
+
 # 데이터베이스 설정
 config_path = "../db"  # 데이터베이스 설정 파일이 위치한 디렉토리의 상대 경로
 config = configparser.ConfigParser()
@@ -75,18 +90,3 @@ async def get_article(article_id: str, db: Session = Depends(get_db)):
 
 print("done!")
 
-
-
-'''
-api_upload.py: 활성화시 SQLAlchemy 바탕으로 데이터베이스와 연결 get 요청에 응답하여 해당하는 기사 가져다줌
-
-실행방법:
-python api_upload.py
-uvicorn api_upload:app --reload
-두 개 다 실행되어야함. 터미널 유지해야 돌아감
-
-향후 개선방안
-- 추후에 모델 불러오는것 추가
-- 모델을 바탕으로 어떠한 방식으로 기사데이터를 보여줄건지 자세한 로직
-
-'''
