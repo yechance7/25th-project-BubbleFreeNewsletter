@@ -159,28 +159,53 @@ async def get_latest_articles(db: Session = Depends(get_db)):
     articles = db.query(Article).order_by(Article.date.desc()).limit(20).all()
     return articles
 
+class Selection(BaseModel):
+    article_id: str
+    selected: bool
+    logits: list
 
-@app.get("/article/logits/{article_id}")
-async def get_article_logits(article_id: str, db: Session = Depends(get_db)):
-    article = db.query(Article).filter(Article.article_id == article_id).first()
-    
-    if not article:
-        raise HTTPException(status_code=404, detail="Article not found")
-    
-    # logits를 JSON 문자열에서 리스트로 변환
-    logits = json.loads(article.logits)
-    
-    return {"logits": logits}
+class SelectionsRequest(BaseModel):
+    user_id: str
+    selections: list[Selection]
 
-@app.post("/save-average-logits")
-async def save_average_logits(data: dict, db: Session = Depends(get_db)):
-    average_logits = data.get('averageLogits')
-    
-    if not average_logits:
-        raise HTTPException(status_code=400, detail="Average logits not provided")
+@app.post("/save-selections")
+async def save_selections(request: SelectionsRequest, db: Session = Depends(get_db)):
+    try:
+        user_id = request.user_id
+        selections = request.selections
+        
+        logits_sum = None
+        count = 0
 
-    # 평균 logits 값을 DB에 저장하는 로직을 추가
-    # 예를 들어, 로그 파일에 기록하거나 별도의 테이블에 저장할 수 있습니다.
+        for selection in selections:
+            if selection.selected:
+                logits = selection.logits
+                
+                # logits을 더하기
+                if logits_sum is None:
+                    logits_sum = logits
+                else:
+                    logits_sum = [x + y for x, y in zip(logits_sum, logits)]
+                
+                count += 1
+        
+        if count == 0:
+            raise HTTPException(status_code=400, detail="No valid selections provided.")
 
-    return {"message": "Average logits saved successfully!"}
+        # 평균 logits 계산
+        average_logits = [x / count for x in logits_sum]
 
+        # 평균 logits을 JSON 문자열로 변환
+        average_logits_json = json.dumps(average_logits)
+
+        # 데이터베이스에 평균 logits 저장
+        avg_logit_entry = UserInfo(user_id=user_id, average_logits=average_logits_json)
+        db.add(avg_logit_entry)
+        db.commit()
+
+        return {"message": "Selections saved successfully!", "average_logits": average_logits}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+# DB 초기화
+init_db()
