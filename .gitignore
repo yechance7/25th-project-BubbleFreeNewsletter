@@ -21,6 +21,7 @@ src/article_data/train_article.csv.zip
 ybigta
 ### source ybigta/bin/activate
 json
+fe/node_modules
 wandb
 .vscode/
 checkpoints/
