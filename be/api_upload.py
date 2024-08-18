@@ -8,7 +8,6 @@ import torch.nn as nn
 from transformers import BertForSequenceClassification, BertTokenizer
 import json
 from pydantic import BaseModel
-
 from fastapi.middleware.cors import CORSMiddleware
 
 # FastAPI 애플리케이션 설정
@@ -23,23 +22,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# 나머지 코드...
-
-
-'''
-api_upload.py: 활성화시 SQLAlchemy 바탕으로 데이터베이스와 연결 get 요청에 응답하여 해당하는 기사 가져다줌
-
-실행방법:
-python api_upload.py
-uvicorn api_upload:app --reload
-두 개 다 실행되어야함. 터미널 유지해야 돌아감
-
-향후 개선방안
-- 추후에 모델 불러오는것 추가
-- 모델을 바탕으로 어떠한 방식으로 기사데이터를 보여줄건지 자세한 로직
-
-'''
-
 # 데이터베이스 설정
 config_path = "../db"  # 데이터베이스 설정 파일이 위치한 디렉토리의 상대 경로
 config = configparser.ConfigParser()
@@ -53,7 +35,7 @@ engine = create_engine(DATABASE_URL)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
 
-# 모델 정의
+# Article 모델 정의
 class Article(Base):
     __tablename__ = "article"
     
@@ -65,8 +47,17 @@ class Article(Base):
     softmax_probabilities = Column(Text)  # BERT 모델 추론 후 softmax 확률 저장
     logits = Column(Text)  # BERT 모델 추론 후 logits 저장
 
-# # FastAPI 애플리케이션 설정
-# app = FastAPI()
+# UserInfo 모델 정의
+class UserInfo(Base):
+    __tablename__ = "user_info"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(String(255), index=True)
+    average_logits = Column(Text)  # JSON 문자열로 저장
+
+# 테이블 생성 함수
+def init_db():
+    Base.metadata.create_all(bind=engine)
 
 # 비동기 데이터베이스 세션 의존성
 def get_db():
@@ -168,28 +159,53 @@ async def get_latest_articles(db: Session = Depends(get_db)):
     articles = db.query(Article).order_by(Article.date.desc()).limit(20).all()
     return articles
 
+class Selection(BaseModel):
+    article_id: str
+    selected: bool
+    logits: list
 
-@app.get("/article/logits/{article_id}")
-async def get_article_logits(article_id: str, db: Session = Depends(get_db)):
-    article = db.query(Article).filter(Article.article_id == article_id).first()
-    
-    if not article:
-        raise HTTPException(status_code=404, detail="Article not found")
-    
-    # logits를 JSON 문자열에서 리스트로 변환
-    logits = json.loads(article.logits)
-    
-    return {"logits": logits}
+class SelectionsRequest(BaseModel):
+    user_id: str
+    selections: list[Selection]
 
-@app.post("/save-average-logits")
-async def save_average_logits(data: dict, db: Session = Depends(get_db)):
-    average_logits = data.get('averageLogits')
-    
-    if not average_logits:
-        raise HTTPException(status_code=400, detail="Average logits not provided")
+@app.post("/save-selections")
+async def save_selections(request: SelectionsRequest, db: Session = Depends(get_db)):
+    try:
+        user_id = request.user_id
+        selections = request.selections
+        
+        logits_sum = None
+        count = 0
 
-    # 평균 logits 값을 DB에 저장하는 로직을 추가
-    # 예를 들어, 로그 파일에 기록하거나 별도의 테이블에 저장할 수 있습니다.
+        for selection in selections:
+            if selection.selected:
+                logits = selection.logits
+                
+                # logits을 더하기
+                if logits_sum is None:
+                    logits_sum = logits
+                else:
+                    logits_sum = [x + y for x, y in zip(logits_sum, logits)]
+                
+                count += 1
+        
+        if count == 0:
+            raise HTTPException(status_code=400, detail="No valid selections provided.")
 
-    return {"message": "Average logits saved successfully!"}
+        # 평균 logits 계산
+        average_logits = [x / count for x in logits_sum]
 
+        # 평균 logits을 JSON 문자열로 변환
+        average_logits_json = json.dumps(average_logits)
+
+        # 데이터베이스에 평균 logits 저장
+        avg_logit_entry = UserInfo(user_id=user_id, average_logits=average_logits_json)
+        db.add(avg_logit_entry)
+        db.commit()
+
+        return {"message": "Selections saved successfully!", "average_logits": average_logits}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+# DB 초기화
+init_db()
