@@ -19,3 +19,6 @@ ybigta
 ### source ybigta/bin/activate
 json
 wandb
+.vscode/
+checkpoints/
+kpfbert/
