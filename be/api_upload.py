@@ -9,6 +9,22 @@ from transformers import BertForSequenceClassification, BertTokenizer
 import json
 from pydantic import BaseModel
 
+from fastapi.middleware.cors import CORSMiddleware
+
+# FastAPI 애플리케이션 설정
+app = FastAPI()
+
+# CORS 설정
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:3000"],  # 프론트엔드 주소
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# 나머지 코드...
+
 
 '''
 api_upload.py: 활성화시 SQLAlchemy 바탕으로 데이터베이스와 연결 get 요청에 응답하여 해당하는 기사 가져다줌
@@ -49,8 +65,8 @@ class Article(Base):
     softmax_probabilities = Column(Text)  # BERT 모델 추론 후 softmax 확률 저장
     logits = Column(Text)  # BERT 모델 추론 후 logits 저장
 
-# FastAPI 애플리케이션 설정
-app = FastAPI()
+# # FastAPI 애플리케이션 설정
+# app = FastAPI()
 
 # 비동기 데이터베이스 세션 의존성
 def get_db():
