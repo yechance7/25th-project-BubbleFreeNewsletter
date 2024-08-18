@@ -112,5 +112,45 @@ async def get_article(article_id: str, db: Session = Depends(get_db)):
     
     return article
 
-print("done!")
+@app.post("/article/infer/{article_id}")
+async def infer_article(article_id: str):
+    db = SessionLocal()
+    try:
+        # 데이터베이스에서 article_id로 기사를 검색
+        article = db.query(Article).filter(Article.article_id == article_id).first()
+
+        if not article:
+            raise HTTPException(status_code=404, detail="Article not found")
+
+        # 기사의 내용 추출
+        content = article.content
+
+        # 입력받은 기사 본문을 모델에 전달하여 추론 수행
+        inputs = tokenizer(content, return_tensors="pt", max_length=512, truncation=True, padding="max_length")
+        inputs = {key: value.to(device) for key, value in inputs.items()}
+
+        with torch.no_grad():
+            outputs = model(**inputs)
+            logits = outputs.logits
+
+            softmax = nn.Softmax(dim=1)
+            preds = softmax(logits)
+
+        # 확률과 logits를 numpy 배열로 변환
+        preds_rounded = preds.cpu().numpy().tolist()
+        logits_rounded = logits.cpu().numpy().tolist()
+
+        # JSON 문자열로 변환
+        preds_json = json.dumps(preds_rounded)
+        logits_json = json.dumps(logits_rounded)
+
+        # 데이터베이스에서 해당 기사 레코드를 업데이트
+        article.softmax_probabilities = preds_json
+        article.logits = logits_json
+        db.commit()
+
+        return {"softmax_probabilities": preds_rounded, "logits": logits_rounded}
+
+    finally:
+        db.close()
 
