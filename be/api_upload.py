@@ -154,3 +154,33 @@ async def infer_article(article_id: str):
     finally:
         db.close()
 
+@app.get("/articles/latest")
+async def get_latest_articles(db: Session = Depends(get_db)):
+    articles = db.query(Article).order_by(Article.date.desc()).limit(20).all()
+    return articles
+
+
+@app.get("/article/logits/{article_id}")
+async def get_article_logits(article_id: str, db: Session = Depends(get_db)):
+    article = db.query(Article).filter(Article.article_id == article_id).first()
+    
+    if not article:
+        raise HTTPException(status_code=404, detail="Article not found")
+    
+    # logits를 JSON 문자열에서 리스트로 변환
+    logits = json.loads(article.logits)
+    
+    return {"logits": logits}
+
+@app.post("/save-average-logits")
+async def save_average_logits(data: dict, db: Session = Depends(get_db)):
+    average_logits = data.get('averageLogits')
+    
+    if not average_logits:
+        raise HTTPException(status_code=400, detail="Average logits not provided")
+
+    # 평균 logits 값을 DB에 저장하는 로직을 추가
+    # 예를 들어, 로그 파일에 기록하거나 별도의 테이블에 저장할 수 있습니다.
+
+    return {"message": "Average logits saved successfully!"}
+
