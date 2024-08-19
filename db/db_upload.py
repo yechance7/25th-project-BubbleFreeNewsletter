@@ -4,6 +4,27 @@ import configparser
 import mysql.connector
 from mysql.connector import Error
 
+'''
+db/db_upload.py: mysql 활성화하여 데이터베이스 생성 후 json파일 바탕으로 article table 생성
+
+데이터셋 구성
+article_id: PRIMARY KEY ["chosun": "c", "donga": "d","hani": "h","joongang": "j","khan": "k"] ex) c1- 조선일보 첫번째 기사
+title: 기사제목
+keyword: 키워드
+content: 본문(만약 크롤링된 본문이 없을시 빅카인즈의 짤린 본문)
+date: 기사날짜
+
+- mysql 서버활성화에 로그인 권한 관련되서 되게 복잡함... chatgpt에게 물어보면서 해결하면 결국 됨
+
+실행방법:
+1. mysql 시작
+sudo service mysql start
+
+2. db 생성
+python db_upload.py
+
+'''
+
 # 여러 JSON 파일 경로 리스트
 data_path = "json/"
 json_files = [
@@ -131,29 +152,3 @@ finally:
 
 print("done!")
 
-
-
-'''
-db/db_upload.py: mysql 활성화하여 데이터베이스 생성 후 json파일 바탕으로 article table 생성
-
-데이터셋 구성
-article_id: PRIMARY KEY ["chosun": "c", "donga": "d","hani": "h","joongang": "j","khan": "k"] ex) c1- 조선일보 첫번째 기사
-title: 기사제목
-keyword: 키워드
-content: 본문(만약 크롤링된 본문이 없을시 빅카인즈의 짤린 본문)
-date: 기사날짜
-
-- mysql 서버활성화에 로그인 권한 관련되서 되게 복잡함... chatgpt에게 물어보면서 해결하면 결국 됨
-
-실행방법:
-1. mysql 시작
-sudo service mysql start
-
-2. db 생성
-python db_upload.py
-
-
-향후 개선방안:
-- 이후에 모델 훈련결과로 나온 진보-보수 라벨정도 열 추가하는 코드
-
-'''
