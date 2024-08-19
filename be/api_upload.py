@@ -16,7 +16,7 @@ app = FastAPI()
 # CORS 설정
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],  # 프론트엔드 주소
+    allow_origins=["*"],  # 프론트엔드 주소
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -181,7 +181,6 @@ async def save_selections(request: SelectionsRequest, db: Session = Depends(get_
             if selection.selected:
                 logits = selection.logits
                 
-                # logits을 더하기
                 if logits_sum is None:
                     logits_sum = logits
                 else:
@@ -192,20 +191,28 @@ async def save_selections(request: SelectionsRequest, db: Session = Depends(get_
         if count == 0:
             raise HTTPException(status_code=400, detail="No valid selections provided.")
 
-        # 평균 logits 계산
         average_logits = [x / count for x in logits_sum]
-
-        # 평균 logits을 JSON 문자열로 변환
         average_logits_json = json.dumps(average_logits)
 
-        # 데이터베이스에 평균 logits 저장
-        avg_logit_entry = UserInfo(user_id=user_id, average_logits=average_logits_json)
-        db.add(avg_logit_entry)
+        user_info = db.query(UserInfo).filter(UserInfo.user_id == user_id).first()
+
+        if user_info:
+            user_info.average_logits = average_logits_json
+        else:
+            user_info = UserInfo(user_id=user_id, average_logits=average_logits_json)
+            db.add(user_info)
+
         db.commit()
 
         return {"message": "Selections saved successfully!", "average_logits": average_logits}
+    except HTTPException as http_ex:
+        raise http_ex
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        # 여기에서 자세한 로그를 기록하는 것이 좋습니다.
+        import logging
+        logging.error(f"Error saving selections: {e}")
+        raise HTTPException(status_code=500, detail="An unexpected error occurred.")
+
 
 # DB 초기화
 init_db()
