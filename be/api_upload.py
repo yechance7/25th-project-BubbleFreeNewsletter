@@ -44,8 +44,8 @@ class Article(Base):
     keyword = Column(Text)
     content = Column(Text)
     date = Column(Integer)  # MySQL의 INT 타입과 호환되도록 Integer 사용
-    softmax_probabilities = Column(Text)  # BERT 모델 추론 후 softmax 확률 저장
-    logits = Column(Text)  # BERT 모델 추론 후 logits 저장
+    # softmax_probabilities = Column(Text)  # BERT 모델 추론 후 softmax 확률 저장
+    # logits = Column(Text)  # BERT 모델 추론 후 logits 저장
 
 # UserInfo 모델 정의
 class UserInfo(Base):

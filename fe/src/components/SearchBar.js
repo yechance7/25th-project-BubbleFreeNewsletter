@@ -1,5 +1,5 @@
 // fe/components/SearchBar.js
-import React, { useState, useEffect } from 'react';  // useEffect도 추가해야 함
+import React, { useState, useEffect } from 'react';  // 
 import { searchByTitle, searchByKeyword } from '../api';
 import ArticleList from './ArticleList';
 
@@ -33,7 +33,7 @@ const SearchBar = () => {
 
     return (
         <div>
-            <h1>Article Search</h1>
+            <h1>필터버블 해소를 위한 뉴스레터</h1>
             <input
                 type="text"
                 value={query}
