@@ -1,20 +1,26 @@
 /* Global Styles */
 body {
     font-family: 'Inter', sans-serif;
-    background-color: #f8f9fa;
+    background-color: #f4f5f7;
     margin: 0;
     padding: 0;
     color: #333;
 }
 
+h1, h2, h3, p {
+    margin: 0;
+    padding: 0;
+    line-height: 1.5;
+}
+
 /* 전체 페이지 컨테이너 */
 .MyPage {
-    max-width: 1600px;  /* 넓이를 더 넓혔습니다. */
-    margin: 0 auto;
+    max-width: 1200px;
+    margin: 40px auto;
     padding: 40px;
     background-color: #ffffff;
     border-radius: 15px;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
 }
 
 /* 가로 레이아웃을 위한 Articles Container */
@@ -30,10 +36,10 @@ body {
     background-color: #fff;
     border-radius: 12px;
     overflow: hidden;
-    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
     transition: transform 0.2s, box-shadow 0.2s;
-    width: 400px;  /* 카드의 너비를 늘렸습니다. */
-    min-height: 320px;
+    width: 350px;
+    min-height: 300px;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
@@ -41,13 +47,13 @@ body {
 }
 
 .article-container:hover {
-    transform: translateY(-10px);
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+    transform: translateY(-8px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
 }
 
 /* Article Title */
 .article-container h2 {
-    font-size: 1.5rem;
+    font-size: 1.4rem;
     margin: 0;
     color: #333;
 }
@@ -57,25 +63,24 @@ body {
     font-size: 1rem;
     color: #666;
     line-height: 1.6;
-    margin: 15px 0 0;
+    margin: 10px 0 0;
 }
 
-/* Select Button Styling */
+/* 버튼 그룹 스타일 */
 .button-group button {
-    background-color: #ff6363;
+    background-color: #0472f8;
     color: white;
-    font-size: 1rem;
-    padding: 12px 25px;
+    font-size: 0.9rem;
+    padding: 12px 20px;
     border: none;
-    border-radius: 30px;
+    border-radius: 5px;
     cursor: pointer;
     transition: background-color 0.3s ease, transform 0.2s;
-    align-self: flex-start;
 }
 
 .button-group button:hover {
-    background-color: #ff5252;
-    transform: translateY(-5px);
+    background-color: #202124;
+    transform: translateY(-2px);
 }
 
 /* Search Section Styling */
@@ -85,36 +90,30 @@ body {
 }
 
 .search-section h3 {
-    font-size: 1.8rem;
+    font-size: 1.6rem;
     margin-bottom: 20px;
 }
 
 .search-section input {
-    padding: 12px;
+    padding: 10px;
     border-radius: 30px;
-    border: 2px solid #ccc;
+    border: 1px solid #ccc;
     font-size: 1rem;
-    width: 300px;
+    width: 280px;
 }
 
 .search-section button {
-    padding: 12px 25px;
+    padding: 10px 20px;
     border-radius: 30px;
-    background-color: #17a2b8;
+    background-color: #007bff;
     color: white;
     border: none;
     margin-left: 10px;
     font-size: 1rem;
     cursor: pointer;
+    transition: background-color 0.3s ease;
 }
 
 .search-section button:hover {
-    background-color: #138496;
-}
-
-.error {
-    color: red;
-    text-align: center;
-    margin-top: 20px;
-    font-weight: bold;
+    background-color: #0056b3;
 }
