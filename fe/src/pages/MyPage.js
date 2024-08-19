@@ -18,8 +18,8 @@ const articles = [
 const MyPage = () => {
     const [currentIndex, setCurrentIndex] = useState(0);
     const [selectedOptions, setSelectedOptions] = useState({});
+    const [nickname, setNickname] = useState(''); // 닉네임 상태 추가
     const [error, setError] = useState(null);
-    const userId = 'user1';  // 여기에서 동적으로 또는 실제 사용자 ID를 받아올 수 있습니다.
 
     const handleSelect = (article_id) => {
         setSelectedOptions(prev => ({
@@ -48,9 +48,9 @@ const MyPage = () => {
             const response = await fetch('http://127.0.0.1:8000/save-selections', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ user_id: userId, selections })
+                body: JSON.stringify({ user_id: nickname, selections })  // 입력된 닉네임을 user_id로 사용
             });
-            
+
             const result = await response.json();
 
             alert(`Selections saved successfully! Average logits: ${JSON.stringify(result.average_logits)}`);
@@ -63,6 +63,17 @@ const MyPage = () => {
 
     return (
         <div className="MyPage">
+            {/* 닉네임 입력 필드 추가 */}
+            <div className="nickname-container">
+                <h2>닉네임을 입력하세요</h2>
+                <input
+                    type="text"
+                    value={nickname}
+                    onChange={(e) => setNickname(e.target.value)}
+                    placeholder="닉네임 입력"
+                />
+            </div>
+
             {currentArticles.length === 2 ? (
                 <div className="articles-container">
                     {currentArticles.map(article => (
@@ -78,6 +89,8 @@ const MyPage = () => {
             ) : (
                 <p>No more articles to review.</p>
             )}
+
+            {/* 에러 메시지 출력 */}
             {error && <p className="error">{error}</p>}
         </div>
     );
