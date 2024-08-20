@@ -67,7 +67,7 @@ async def main(urls):
                 break
 
     save_to_csv(progress['article_list'], 'new_data/processed_csv/hani_article.csv')
-    save_failed_urls(timeout_urls, 'timeout_urls.txt')
+    # save_failed_urls(timeout_urls, 'timeout_urls.txt')
     print("모든 URL 처리가 완료되었습니다.")
 
 def save_to_csv(article_list, filename):
