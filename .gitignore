@@ -14,12 +14,9 @@ tempCodeRunnerFile.py
 src/article_data/train_article.csv.zip
 /src/data/
 /src/test
-
-
 .gitignore
 .vscode
 ybigta
-### source ybigta/bin/activate
 json
 fe/node_modules
 wandb
@@ -34,4 +31,4 @@ fe/package-lock.json
 bubble_free_BERT/
 bubble_free_tokenizer/
 db/db_user.py
-
+new_data/

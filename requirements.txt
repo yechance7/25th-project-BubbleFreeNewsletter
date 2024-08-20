@@ -11,3 +11,6 @@ mysql-connector-python
 sqlalchemy
 fastapi
 uvicorn
+openpyxl
+selenium
+webdriver_manager
