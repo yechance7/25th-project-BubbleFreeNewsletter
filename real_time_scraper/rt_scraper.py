@@ -15,7 +15,6 @@ user_name = "filterbubble2024@gmail.com"
 password = "Ybigta2024!"
 
 class RTScraper:
-    # 구현하세요!
     def __init__(self) -> None:
         self.url: str = 'https://www.bigkinds.or.kr/'
         self.url2: str = 'https://www.bigkinds.or.kr/v2/news/index.do'
@@ -23,6 +22,7 @@ class RTScraper:
         self.save_dir = ""
         # self.options.add_argument("--headless")   # 활성시키면 background에서 실행
         self.driver = webdriver.Chrome(options=self.options)
+        # self.driver.set_window_size(1920, 1080)
         self.wait = WebDriverWait(self.driver, 60)  # Explicit wait with a timeout of 10 seconds
 
     def scrap(self) -> None:
