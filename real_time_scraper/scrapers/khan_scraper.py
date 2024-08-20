@@ -4,6 +4,7 @@ import chardet
 from bs4 import BeautifulSoup
 import csv
 import re
+import os
 import pandas as pd
 
 async def fetch_html(session, url):
@@ -15,65 +16,64 @@ async def fetch_html(session, url):
     }
     try:
         async with session.get(url, headers=headers, timeout=aiohttp.ClientTimeout(total=180)) as response:
-         # Get the raw content
             raw_content = await response.read()
-
-            # Try to detect encoding if not specified
             detected_encoding = chardet.detect(raw_content)['encoding']
             encoding = response.charset or detected_encoding or 'utf-8'
-
-            # Decode the content with the detected or specified encoding
             try:
                 return raw_content.decode(encoding)
             except UnicodeDecodeError:
                 return raw_content.decode('utf-8', errors='ignore')
-        
     except asyncio.TimeoutError as e:
-        print(f"타임아웃 오류가 발생했습니다: {e}")
+        print(f"Timeout error: {e}")
         return 'timeout'
     except (aiohttp.ClientError, Exception) as e:
-        print(f"오류가 발생했습니다: {e}")
+        print(f"Error occurred: {e}")
         return None
 
-async def extract_article_text(html_source):
+async def extract_article_text_and_image(html_source):
     soup = BeautifulSoup(html_source, 'html.parser')
-    # 본문 내용이 담긴 파트를 찾는다.
+    
+    # Extract article text
     try:
-        #article_body = soup.find('div', {'id': 'articleBody'})
         article_body = soup.find('div', {'class': 'art_body'})
     except Exception as e:
         print(f"Error: {e}")
+        return None, None
 
     if article_body is None:
         print("Warning: 'articleBody' not found. English News")
-        return None
+        return None, None
     
     text_content = article_body.get_text(separator='\n').strip()
     text_content = re.sub(r'\n\s*\n', '\n', text_content)
 
-    return text_content
+    # Extract image src using the provided selector
+    image_tag = soup.select_one('#articleBody > div.art_photo.photo_center > div > picture > img')
+    image_src = image_tag['src'] if image_tag else None
+
+    return text_content, image_src
 
 async def fetch_article(session, url, progress, timeout_urls):
     html_source = await fetch_html(session, url)
     if html_source == 'timeout':
         timeout_urls.append(url)
         progress['count'] += 1
-        print(f"진행 상태: {progress['count']}/{progress['total']} ({(progress['count']/progress['total'])*100:.2f}%) 완료 (타임아웃 발생)")
-    elif html_source == None:
+        print(f"Progress: {progress['count']}/{progress['total']} ({(progress['count']/progress['total'])*100:.2f}%) complete (timeout)")
+    elif html_source is None:
         progress['count'] += 1
-        print(f"진행 상태: {progress['count']}/{progress['total']} ({(progress['count']/progress['total'])*100:.2f}%) 완료 (링크 없음)")
+        print(f"Progress: {progress['count']}/{progress['total']} ({(progress['count']/progress['total'])*100:.2f}%) complete (no link)")
     elif html_source:
-        article_text = await extract_article_text(html_source)
-        if article_text:
+        article_text, image_src = await extract_article_text_and_image(html_source)
+        if article_text or image_src:
             progress['count'] += 1
-            progress['article_list'].append([url, article_text])
-            print(f"진행 상태: {progress['count']}/{progress['total']} ({(progress['count']/progress['total'])*100:.2f}%) 완료")
+            progress['article_list'].append([url, article_text, image_src])
+            print(f"Progress: {progress['count']}/{progress['total']} ({(progress['count']/progress['total'])*100:.2f}%) complete")
         else:
             progress['count'] += 1
-            print(f"진행 상태: {progress['count']}/{progress['total']} ({(progress['count']/progress['total'])*100:.2f}%) 완료 (컨텐츠 없음)")
+            print(f"Progress: {progress['count']}/{progress['total']} ({(progress['count']/progress['total'])*100:.2f}%) complete (no content)")
     else:
         progress['count'] += 1
-        print(f"진행 상태: {progress['count']}/{progress['total']} ({(progress['count']/progress['total'])*100:.2f}%) 완료 (오류 발생)")
+        print(f"Progress: {progress['count']}/{progress['total']} ({(progress['count']/progress['total'])*100:.2f}%) complete (error)")
 
 async def main(urls):
     progress = {'count': 0, 'total': len(urls), 'article_list': []}
@@ -92,13 +92,16 @@ async def main(urls):
                 break
 
     save_to_csv(progress['article_list'], 'new_data/processed_csv/khan_article.csv')
-    # save_failed_urls(timeout_urls, 'timeout_urls.txt')
-    print("모든 URL 처리가 완료되었습니다.")
+    print("All URLs have been processed.")
 
 def save_to_csv(article_list, filename):
+    # Remove the existing file if it exists
+    if os.path.exists(filename):
+        os.remove(filename)
+    
     with open(filename, mode='w', newline='', encoding='utf-8', errors='ignore') as file:
         writer = csv.writer(file)
-        writer.writerow(["URL", "Article"])
+        writer.writerow(["URL", "Article", "Image"])
         for article in article_list:
             writer.writerow(article)
 
@@ -107,12 +110,10 @@ def save_failed_urls(failed_urls, filename):
         for url in failed_urls:
             file.write(url + '\n')
 
-# URL 리스트
+# URL list
 file_path = 'new_data/raw_csv/khan.csv'  # Replace this with the correct path to your CSV file
-# Read the CSV file into a DataFrame
 df = pd.read_csv(file_path)
-# Extract the URLs from the 'URL' column
 urls = df['URL'].tolist()
 
-# 비동기 함수 실행
+# Run the async function
 asyncio.run(main(urls))

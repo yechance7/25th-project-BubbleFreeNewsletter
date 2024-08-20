@@ -31,7 +31,7 @@ for prefix in file_prefixes:
         article_df.rename(columns={'Body': 'Article'}, inplace=True)
     
     # URL을 기준으로 병합 (left join)
-    merged_df = pd.merge(raw_df, article_df[['URL', 'Article']], on='URL', how='left')
+    merged_df = pd.merge(raw_df, article_df[['URL', 'Article', 'Image']], on='URL', how='left')
     
     # NaN 값을 빈 문자열로 처리
     merged_df.fillna('', inplace=True)

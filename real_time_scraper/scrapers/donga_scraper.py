@@ -19,10 +19,13 @@ async def fetch(session, url, idx, semaphore):
                     html = await response.text()
                     soup = BeautifulSoup(html, 'html.parser')
                     news_body_tag = soup.find('section', class_='news_view')
+                    img_tag = soup.find('img')  # Extract the first image tag
+
                     if news_body_tag:
                         news_body = news_body_tag.get_text(strip=True)
+                        img_src = img_tag['src'] if img_tag else ''  # Get the image source or an empty string
                         logging.info(f"Successfully fetched data from URL: {url} (index: {idx})")
-                        save_article(url, news_body)
+                        save_article(url, news_body, img_src)
                     else:
                         logging.warning(f"'section' with class 'news_view' not found in URL: {url} (index: {idx})")
                 else:
@@ -34,19 +37,25 @@ async def fetch(session, url, idx, semaphore):
         except Exception as e:
             logging.error(f"An unknown error occurred for URL: {url} with exception: {str(e)} (index: {idx})")
 
-def save_article(url, body):
+def save_article(url, body, img_src):
     output_file = 'new_data/processed_csv/donga_article.csv'
     
-    # Check if the file exists
-    file_exists = os.path.isfile(output_file)
-    
+    # Remove the existing file if it exists before the first write
+    if not hasattr(save_article, 'file_checked'):
+        if os.path.isfile(output_file):
+            os.remove(output_file)
+            logging.info(f"Removed existing file: {output_file}")
+        save_article.file_checked = True
+
     # Create the directory if it doesn't exist
     os.makedirs(os.path.dirname(output_file), exist_ok=True)
     
     # Write to CSV with headers only if the file doesn't exist
+    file_exists = os.path.isfile(output_file)
     df = pd.DataFrame({
         'URL': [url],
-        'Article': [body]
+        'Article': [body],
+        'Image': [img_src]
     })
     df.to_csv(output_file, mode='a', header=not file_exists, index=False, quoting=1)  # quoting=1 to quote the Article content
     logging.info(f"Saved article to CSV: {url}")

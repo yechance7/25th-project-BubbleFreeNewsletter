@@ -3,6 +3,7 @@ import aiohttp
 from bs4 import BeautifulSoup
 import csv
 import pandas as pd
+import os
 
 async def fetch_html(session, url):
     headers = {
@@ -20,16 +21,19 @@ async def fetch_html(session, url):
 
 async def extract_article_text(html_source):
     soup = BeautifulSoup(html_source, 'html.parser')
-    # class="text" 속성을 가진 모든 p 태그 찾기
+    
+    # Extract article text
     article_sections = soup.find_all('p', class_='text')
-
     article_text = ""
     for section in article_sections:
-        # 텍스트 추출, 줄 바꿈 유지
         text = section.get_text(separator="\n", strip=True)
         article_text += text + "\n"
-    
-    return article_text.strip()
+
+    # Extract specific image source using the provided CSS selector
+    image_tag = soup.select_one('#renewal2023 > div.article-text > div.ArticleDetailContent_imageContainer___o_gm > figure > div > img')
+    image_src = image_tag['src'] if image_tag else None
+
+    return article_text.strip(), image_src
 
 async def fetch_article(session, url, progress, timeout_urls):
     html_source = await fetch_html(session, url)
@@ -38,10 +42,10 @@ async def fetch_article(session, url, progress, timeout_urls):
         progress['count'] += 1
         print(f"진행 상태: {progress['count']}/{progress['total']} ({(progress['count']/progress['total'])*100:.2f}%) 완료 (타임아웃 발생)")
     elif html_source:
-        article_text = await extract_article_text(html_source)
-        if article_text:
+        article_text, image_src = await extract_article_text(html_source)
+        if article_text or image_src:
             progress['count'] += 1
-            progress['article_list'].append([url, article_text])
+            progress['article_list'].append([url, article_text, image_src])
             print(f"진행 상태: {progress['count']}/{progress['total']} ({(progress['count']/progress['total'])*100:.2f}%) 완료")
         else:
             progress['count'] += 1
@@ -66,21 +70,24 @@ async def main(urls):
             if timeout_urls:
                 break
 
-    save_to_csv(progress['article_list'], 'new_data/processed_csv/hani_article.csv')
-    # save_failed_urls(timeout_urls, 'timeout_urls.txt')
+    # Specify the output filename
+    filename = 'new_data/processed_csv/hani_article.csv'
+    
+    # Delete the file if it exists
+    if os.path.exists(filename):
+        os.remove(filename)
+    
+    # Save the articles and image sources to CSV
+    save_to_csv(progress['article_list'], filename)
+
     print("모든 URL 처리가 완료되었습니다.")
 
 def save_to_csv(article_list, filename):
     with open(filename, mode='w', newline='', encoding='utf-8') as file:
         writer = csv.writer(file)
-        writer.writerow(["URL", "Article"])
+        writer.writerow(["URL", "Article", "Image"])
         for article in article_list:
             writer.writerow(article)
-
-def save_failed_urls(failed_urls, filename):
-    with open(filename, 'w', encoding='utf-8') as file:
-        for url in failed_urls:
-            file.write(url + '\n')
 
 # URL 리스트
 file_path = 'new_data/raw_csv/hani.csv'  # Replace this with the correct path to your CSV file

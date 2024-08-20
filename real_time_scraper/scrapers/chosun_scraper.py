@@ -1,3 +1,4 @@
+import os
 import asyncio
 import aiohttp
 import json
@@ -5,14 +6,13 @@ import re
 from bs4 import BeautifulSoup
 import pandas as pd
 import csv
-import os
 
 async def fetch_html(session, url):
     try:
         async with session.get(url) as response:
             return await response.text()
     except aiohttp.ClientError as e:
-        print(f"오류가 발생했습니다: {e}")
+        print(f"Error occurred: {e}")
         return None
 
 async def get_article_content(html_source):
@@ -28,43 +28,47 @@ async def get_article_content(html_source):
                 try:
                     fusion_data = json.loads(json_content)
                     if 'content_elements' not in fusion_data:
-                        print("JSON 응답에 'content_elements' 키가 없습니다.")
+                        print("The 'content_elements' key is missing in the JSON response.")
                         return None
                     content_elements = fusion_data['content_elements']
                     content_list = []
-                    
+                    image_list = []
+
                     for element in content_elements:
                         if 'content' in element:
                             content_list.append(element['content'])
-                    
+                        if 'type' in element and element['type'] == 'image':
+                            if 'url' in element:
+                                image_list.append(element['url'])
+
                     combined_content = "\n\n".join(content_list)
-                    
-                    # Find the starting index of the actual content
+
+                    # Clean up the content if needed
                     start_index = combined_content.find('</div>') + len('</div>')
-                    cleaned_content = combined_content[start_index:]
-                    
-                    return cleaned_content.strip()
+                    cleaned_content = combined_content[start_index:].strip()
+
+                    return cleaned_content, image_list
                 except json.JSONDecodeError as e:
-                    print(f"JSON을 파싱하는 중에 오류가 발생했습니다: {e}")
-                    return None
+                    print(f"Error parsing JSON: {e}")
+                    return None, None
             else:
-                print("JSON 내용을 추출할 수 없습니다.")
-                return None
+                print("Could not extract JSON content.")
+                return None, None
         else:
-            print("스크립트 태그의 내용이 비어 있습니다.")
-            return None
+            print("Script tag content is empty.")
+            return None, None
     else:
-        print("Fusion metadata 스크립트 태그를 찾을 수 없습니다.")
-        return None
+        print("Could not find the Fusion metadata script tag.")
+        return None, None
 
 async def fetch_article(session, url, progress):
     html_source = await fetch_html(session, url)
     if html_source:
-        article_content = await get_article_content(html_source)
+        article_content, image_links = await get_article_content(html_source)
         if article_content:
             progress['count'] += 1
-            progress['article_list'].append([url, article_content])
-            print(f"진행 상태: {progress['count']}/{progress['total']} ({(progress['count']/progress['total'])*100:.2f}%) 완료")
+            progress['article_list'].append([url, article_content, ";".join(image_links)])
+            print(f"Progress: {progress['count']}/{progress['total']} ({(progress['count']/progress['total'])*100:.2f}%) completed")
 
 async def main(file_path):
     df = pd.read_csv(file_path)
@@ -76,26 +80,28 @@ async def main(file_path):
         tasks = [fetch_article(session, url, progress) for url in urls]
         await asyncio.gather(*tasks)
 
-    # Define the directory to save the processed CSV files
     processed_csv_dir = os.path.join('new_data', 'processed_csv')
     
-    # Ensure the directory exists
     if not os.path.exists(processed_csv_dir):
         os.makedirs(processed_csv_dir)
     
-    # Save to the processed_csv directory
-    save_to_csv(progress['article_list'], os.path.join(processed_csv_dir, 'chosun_article.csv'))
-    print("모든 URL 처리가 완료되었습니다.")
+    csv_file_path = os.path.join(processed_csv_dir, 'chosun_article.csv')
+    
+    save_to_csv(progress['article_list'], csv_file_path)
+    print("All URLs have been processed.")
 
 def save_to_csv(article_list, filename):
+    # Remove the file if it already exists
+    if os.path.exists(filename):
+        os.remove(filename)
+        print(f"Existing file '{filename}' has been removed.")
+
     with open(filename, mode='w', newline='', encoding='utf-8') as file:
         writer = csv.writer(file)
-        writer.writerow(["URL", "Article"])
+        writer.writerow(["URL", "Article", "Image"])
         for article in article_list:
             writer.writerow(article)
 
-# 파일 경로 설정
-file_path = 'new_data/raw_csv/chosun.csv'  # 올바른 CSV 파일 경로로 바꾸세요
+file_path = 'new_data/raw_csv/chosun.csv'  # Replace with the correct CSV file path
 
-# 비동기 함수 실행
 asyncio.run(main(file_path))

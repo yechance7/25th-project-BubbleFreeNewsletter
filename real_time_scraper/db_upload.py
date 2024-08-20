@@ -4,28 +4,7 @@ import configparser
 import mysql.connector
 from mysql.connector import Error
 
-'''
-db/db_upload.py: mysql 활성화하여 데이터베이스 생성 후 json파일 바탕으로 article table 생성
-
-데이터셋 구성
-article_id: PRIMARY KEY ["chosun": "c", "donga": "d","hani": "h","joongang": "j","khan": "k"] ex) c1- 조선일보 첫번째 기사
-title: 기사제목
-keyword: 키워드
-content: 본문(만약 크롤링된 본문이 없을시 빅카인즈의 짤린 본문)
-date: 기사날짜
-
-- mysql 서버활성화에 로그인 권한 관련되서 되게 복잡함... chatgpt에게 물어보면서 해결하면 결국 됨
-
-실행방법:
-1. mysql 시작
-sudo service mysql start
-
-2. db 생성
-python db_upload.py
-
-'''
-
-# 여러 JSON 파일 경로 리스트
+# JSON 파일 경로 리스트
 data_path = "new_data/json"
 json_files = [
     os.path.join(data_path, "chosun.json"),
@@ -65,7 +44,7 @@ def create_database(cursor):
 
 def create_table(cursor):
     """
-    테이블 생성 (keyword 열 추가)
+    테이블 생성
     """
     try:
         cursor.execute(
@@ -83,6 +62,32 @@ def create_table(cursor):
     except Error as err:
         print(f"테이블 생성 오류: {err}")
 
+def alter_table_add_image_column(cursor):
+    """
+    article 테이블에 image 열 추가
+    """
+    try:
+        cursor.execute(
+            """
+            SELECT COUNT(*) 
+            FROM information_schema.columns 
+            WHERE table_name = 'article' 
+            AND column_name = 'image'
+            """)
+        if cursor.fetchone()[0] > 0:
+            print("image 열이 이미 존재합니다. 추가하지 않습니다.")
+        else:
+            # Add the 'image' column if it doesn't exist
+            cursor.execute(
+                """
+                ALTER TABLE article 
+                ADD COLUMN image TEXT
+                """
+            )
+            print("image 열이 성공적으로 추가되었습니다.")
+    except Error as err:
+        print(f"image 열 추가 오류: {err}")
+
 def insert_json_to_table(cursor, json_file_path, prefix):
     """
     JSON 데이터를 테이블에 삽입하는 함수
@@ -97,18 +102,20 @@ def insert_json_to_table(cursor, json_file_path, prefix):
                 content = json_data.get("Article", "")
                 content = content if content else json_data.get("본문")  # content가 빈 문자열이면 "본문"으로 설정
                 date = json_data.get("일자")
+                image = json_data.get("Image", "")
 
                 cursor.execute(
                     """
-                    INSERT INTO article (article_id, title, keyword, content, date)
-                    VALUES (%s, %s, %s, %s, %s)
+                    INSERT INTO article (article_id, title, keyword, content, date, image)
+                    VALUES (%s, %s, %s, %s, %s, %s)
                     ON DUPLICATE KEY UPDATE 
                         title=VALUES(title),
                         keyword=VALUES(keyword),
                         content=VALUES(content),
-                        date=VALUES(date)
+                        date=VALUES(date),
+                        image=VALUES(image)
                     """,
-                    (article_id, title, keyword, content, date)
+                    (article_id, title, keyword, content, date, image)
                 )
             print(f"{json_file_path}의 데이터가 성공적으로 삽입되었습니다.")
     except (Error, IOError) as err:
@@ -137,6 +144,7 @@ try:
 
         create_database(cursor)  # 데이터베이스 생성
         create_table(cursor)     # 테이블 생성
+        alter_table_add_image_column(cursor)  # image 열 추가
         conn.database = config.get("DB", "database")  # 데이터베이스 설정
 
         insert_all_json_to_db(cursor, json_files)
@@ -151,4 +159,3 @@ finally:
         print("연결이 종료되었습니다.")
 
 print("done!")
-
