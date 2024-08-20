@@ -49,16 +49,16 @@ def predict(model, tokenizer, content):
         outputs = model(**inputs)
         logits = outputs.logits
 
-        softmax = nn.Softmax(dim=1)  # dim=1은 클래스 차원에 대해 softmax를 적용
-        preds = softmax(logits)
+        #softmax = nn.Softmax(dim=1)  # dim=1은 클래스 차원에 대해 softmax를 적용
+        #preds = softmax(logits)
 
-    preds_rounded = preds.cpu().numpy().round(4)
+    logits = logits.cpu().numpy().round(4)
 
-    return json.dumps(preds_rounded.tolist())
+    return json.dumps(logits.tolist())
 
 def add_inference_column(cursor):
     """
-    데이터베이스에 새로운 열 'new_inference' 추가
+    데이터베이스에 새로운 열 'inference' 추가
     """
     try:
         cursor.execute(
@@ -67,7 +67,7 @@ def add_inference_column(cursor):
             ADD COLUMN inference JSON
             """
         )
-        print("새로운 열 'new_inference'가 추가되었습니다.")
+        print("새로운 열 'inference'가 추가되었습니다.")
     except Error as err:
         print(f"열 추가 오류: {err}")
 
