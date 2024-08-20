@@ -69,4 +69,13 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
+# Run db_upload.py
+echo "Running update_inference.py..."
+python3 update_inference.py
+if [ $? -ne 0 ]; then
+    echo "Error: update_inference.py failed."
+    exit 1
+fi
+
+
 echo "All scripts ran successfully."
