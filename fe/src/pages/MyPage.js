@@ -128,7 +128,7 @@ const MyPage = () => {
                                 <p>{displayedContent}{!isExpanded && article.content.length > 100 && '...'}</p>
                                 {article.content.length > 100 && (
                                     <button className="button-small" onClick={() => toggleExpand(article.article_id)}>
-                                        {isExpanded ? '-' : '>'}
+                                        {isExpanded ? '접기' : '더보기'}
                                     </button>
                                 )}
                                 <div className="button-group">
