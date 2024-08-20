@@ -4,8 +4,8 @@ import torch
 import torch.nn as nn
 from transformers import BertForSequenceClassification, BertTokenizer
 
-model_name_or_path = "bubble_free_BERT"
-tokenizer_name_or_path = "bubble_free_tokenizer"
+model_name_or_path = "../bubble_free_BERT"
+tokenizer_name_or_path = "../bubble_free_tokenizer"
 
 model = BertForSequenceClassification.from_pretrained(model_name_or_path)
 tokenizer = BertTokenizer.from_pretrained(tokenizer_name_or_path)
@@ -15,9 +15,9 @@ model.eval()
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 model.to(device)
 
-sentence = ""
+sentence = input()
 
-inputs = tokenizer(sentence, return_tensors="pt", max_length=128, truncation=True, padding="max_length")
+inputs = tokenizer(sentence, return_tensors="pt", max_length=512,truncation=True, padding="max_length")
 
 inputs = {key: value.to(device) for key, value in inputs.items()}
 
