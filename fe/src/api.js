@@ -3,9 +3,11 @@ import axios from 'axios';
 
 const API_URL = 'http://127.0.0.1:8000';  // FastAPI 서버의 URL
 
-export const searchByTitle = async (query) => {
+export const searchByTitle = async (query, limit = 4, offset = 0) => {
     try {
-        const response = await axios.get(`${API_URL}/search/title/${query}`);
+        const response = await axios.get(`${API_URL}/search/title`, {
+            params: { query, limit, offset }
+        });
         return response.data;
     } catch (error) {
         console.error('Error fetching articles by title:', error);
