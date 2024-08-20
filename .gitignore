@@ -31,4 +31,7 @@ bubble_free_BERT/
 bubble_free_tokenizer/
 db/db_user.py
 fe/package-lock.json
-new_data
+bubble_free_BERT/
+bubble_free_tokenizer/
+db/db_user.py
+
