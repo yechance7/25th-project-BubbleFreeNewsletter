@@ -17,10 +17,11 @@ src/article_data/train_article.csv.zip
 .gitignore
 .vscode
 ybigta
+.vscode
+ybigta
 json
 fe/node_modules
-wandb
-.vscode/
+fe/node_modules.vscode/
 checkpoints/
 kpfbert/
 fe/node_modules
