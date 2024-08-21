@@ -9,6 +9,27 @@ from webdriver_manager.chrome import ChromeDriverManager
 from datetime import datetime
 import time
 import json
+import os
+
+import logging
+
+log_dir = "logs"
+if not os.path.exists(log_dir):
+    os.makedirs(log_dir)
+
+logging.basicConfig(
+    filename=os.path.join(log_dir, 'error_log.log'),  # 로그 파일 경로
+    level=logging.INFO,  # 로깅 레벨 설정 (DEBUG, INFO, WARNING, ERROR, CRITICAL)
+    format='%(asctime)s - %(levelname)s - %(message)s'  # 로그 메시지 포맷
+)
+
+# 콘솔 출력도 같이 하고 싶다면 아래 코드 추가
+console = logging.StreamHandler()
+console.setLevel(logging.DEBUG)
+formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
+console.setFormatter(formatter)
+logging.getLogger().addHandler(console)
+
 
 # 로그인용
 user_name = "filterbubble2024@gmail.com"
@@ -20,9 +41,12 @@ class RTScraper:
         self.url2: str = 'https://www.bigkinds.or.kr/v2/news/index.do'
         self.options = Options()
         self.save_dir = ""
-        # self.options.add_argument("--headless")   # 활성시키면 background에서 실행
+        #self.options.add_argument("--headless")   # 활성시키면 background에서 실행
+        self.options.add_argument('--no-sandbox')
+        self.options.add_argument("--disable-dev-shm-usage")
+        
         self.driver = webdriver.Chrome(options=self.options)
-        # self.driver.set_window_size(1920, 1080)
+        self.driver.set_window_size(1920, 1080)
         self.wait = WebDriverWait(self.driver, 60)  # Explicit wait with a timeout of 10 seconds
 
     def scrap(self) -> None:
@@ -31,7 +55,9 @@ class RTScraper:
             self.driver.get(self.url)
             
             #로그인 먼저 해야됨.
-            self.wait.until(EC.presence_of_element_located((By.XPATH, '//*[@id="header"]/div[1]/div/div[1]/button[1]'))).click()
+            try: self.wait.until(EC.presence_of_element_located((By.XPATH, '//*[@id="header"]/div[1]/div/div[1]/button[1]'))).click()
+            except Exception as e: logging.error('error!')
+
             username_field = self.driver.find_element(By.XPATH, '//*[@id="login-user-id"]')
             username_field.send_keys(user_name)
             pw_filed = self.driver.find_element(By.XPATH, '//*[@id="login-user-password"]')

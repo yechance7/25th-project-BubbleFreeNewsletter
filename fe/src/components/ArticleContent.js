@@ -5,18 +5,19 @@ const ArticleContent = ({ news }) => {
         <div style={styles.container}>
             <h2 style={styles.title}>{news.title}</h2>
             <div style={styles.spacer}></div>
-            {/* 이미지 추가 */}
-            <img 
-                src={news.image}
-                alt="News Image" 
-                style={styles.image}
-            />
-            {/* 구분선 추가 */}
+            {news.image && (
+                <img 
+                    src={news.image}
+                    alt="News Image" 
+                    style={styles.image}
+                />
+            )}
             <hr style={styles.hr} />
             <p style={styles.content}>{news.content}</p>
         </div>
     );
 };
+
 
 const styles = {
     container: {
@@ -40,8 +41,11 @@ const styles = {
         height: '20px', // 제목과 이미지 사이에 간격을 추가
     },
     image: {
-        maxWidth: '100%',
-        height: 'auto',
+        width: '100%',        
+        height: 'auto',        
+        maxWidth: '600px',   
+        maxHeight: '400px',   
+        objectFit: 'cover',    
         borderRadius: '8px',
         boxShadow: '0 2px 4px rgba(0, 0, 0, 0.2)',
     },

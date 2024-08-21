@@ -6,6 +6,8 @@ import configparser
 from transformers import AutoModelForSequenceClassification, AutoTokenizer
 import torch
 import torch.nn as nn
+from datetime import datetime, timedelta
+
 
 '''
 add_inference.py
@@ -24,8 +26,8 @@ def load_model():
     """
     모델과 토크나이저 로드
     """
-    model_name_or_path = "../bubble_free_BERT"
-    tokenizer_name_or_path = "../bubble_free_tokenizer"
+    model_name_or_path = "../module/bubble_free_BERT"
+    tokenizer_name_or_path = "../module/bubble_free_tokenizer"
 
     model = AutoModelForSequenceClassification.from_pretrained(model_name_or_path)
     tokenizer = AutoTokenizer.from_pretrained(tokenizer_name_or_path)
@@ -38,7 +40,15 @@ def predict(model, tokenizer, content):
     """
     model.eval()
 
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    device = torch.device("cuda" if torch.cuda.is_available() else "mps")
+
+    if torch.cuda.is_available():
+        device = torch.device("cuda")
+    elif torch.backends.mps.is_available():
+        device = torch.device("mps")
+    else:
+        device = torch.device("cpu")
+
     model.to(device)
 
     inputs = tokenizer(content, return_tensors="pt", max_length=512, truncation=True, padding="max_length")
@@ -49,42 +59,75 @@ def predict(model, tokenizer, content):
         outputs = model(**inputs)
         logits = outputs.logits
 
-        #softmax = nn.Softmax(dim=1)  # dim=1은 클래스 차원에 대해 softmax를 적용
-        #preds = softmax(logits)
+        softmax = nn.Softmax(dim=1)  # dim=1은 클래스 차원에 대해 softmax를 적용
+        preds = softmax(logits)
 
-    logits = logits.cpu().numpy().round(4)
+    # logits = logits.cpu().numpy().round(4)
+    # preds = logits.cpu().numpy().round(4)
 
-    return json.dumps(logits.tolist())
+    return json.dumps(preds.tolist())
 
 def add_inference_column(cursor):
     """
-    데이터베이스에 새로운 열 'inference' 추가
+    데이터베이스에 새로운 열 'inference'를 추가합니다.
+    이미 존재하는 경우 추가하지 않습니다.
     """
     try:
+        # Check if the column already exists
         cursor.execute(
             """
-            ALTER TABLE article
-            ADD COLUMN inference JSON
+            SELECT COUNT(*)
+            FROM information_schema.columns
+            WHERE table_name = 'article' AND column_name = 'inference'
             """
         )
-        print("새로운 열 'inference'가 추가되었습니다.")
+        exists = cursor.fetchone()[0]
+
+        if exists:
+            print("열 'inference'가 이미 존재합니다.")
+        else:
+            # Add the column if it does not exist
+            cursor.execute(
+                """
+                ALTER TABLE article
+                ADD COLUMN inference JSON
+                """
+            )
+            print("새로운 열 'inference'가 추가되었습니다.")
     except Error as err:
         print(f"열 추가 오류: {err}")
 
+
 def update_inference(cursor, article_id, inference):
     """
-    데이터베이스에 예측 결과 업데이트
+    데이터베이스에 예측 결과를 업데이트합니다.
+    이미 예측 결과가 있는 경우 업데이트하지 않습니다.
     """
     try:
+        # Check if the inference column is NULL for the given article_id
         cursor.execute(
             """
-            UPDATE article
-            SET inference = %s
+            SELECT inference
+            FROM article
             WHERE article_id = %s
             """,
-            (inference, article_id)
+            (article_id,)
         )
-        print(f"article_id {article_id}의 예측 결과가 업데이트되었습니다.")
+        current_inference = cursor.fetchone()
+
+        if current_inference is not None and current_inference[0] is not None:
+            pass
+        else:
+            # Update the inference if it is currently NULL
+            cursor.execute(
+                """
+                UPDATE article
+                SET inference = %s
+                WHERE article_id = %s
+                """,
+                (inference, article_id)
+            )
+            print(f"article_id {article_id}의 예측 결과가 업데이트되었습니다.")
     except Error as err:
         print(f"예측 결과 업데이트 오류: {err}")
 
@@ -114,16 +157,28 @@ try:
         
         # 모델 로드
         model, tokenizer = load_model()
-        
-        # 데이터베이스에서 데이터 불러오기
-        cursor.execute("SELECT article_id, content FROM article")
+
+
+        # 어제, 오늘 데이터 and inference 값 없는 데이터만 가져오기
+        today = int(datetime.now().strftime('%Y%m%d'))
+        yesterday = (datetime.now() - timedelta(1)).strftime('%Y%m%d')
+
+        cursor.execute(
+            """
+            SELECT article_id, content 
+            FROM article 
+            WHERE inference IS NULL 
+            AND date IN (%s, %s)
+            """,
+            (yesterday, today)
+        )
         rows = cursor.fetchall()
-        
+
         for row in rows:
             article_id, content = row
             inference = predict(model, tokenizer, content)
             update_inference(cursor, article_id, inference)
-        
+
         conn.commit()
 
 except Error as err:
