@@ -34,3 +34,27 @@ export const getArticle = async (articleId) => {
         throw error;
     }
 };
+
+
+export const fetchUserData = async (userId) => {
+    try {
+        const response = await axios.get(`${API_URL}/user_info/${userId}`);
+        return response.data;
+    } catch (error) {
+        console.error('Error fetching user data:', error);
+        throw error;
+    }
+};
+
+export const fetchNewsListByDate = async (userId, date) => {
+    try {
+        const response = await fetch(`${API_URL}/todayNewsList/${userId}/${date}`);
+        if (!response.ok) {
+            throw new Error('Network response was not ok');
+        }
+        return response.json();
+    } catch (error) {
+        console.error('Error fetching news list:', error);
+        throw error;
+    }
+};

@@ -1,13 +1,15 @@
 from fastapi import FastAPI, Depends, HTTPException
-from sqlalchemy import create_engine, Column, Integer, String, Text
+from sqlalchemy import create_engine, Column, Integer, String, Text, JSON
 from sqlalchemy.orm import declarative_base, sessionmaker, Session
 import configparser
+from pydantic import BaseModel
+from datetime import datetime
+import numpy as np
 import os
 import torch
 import torch.nn as nn
 from transformers import BertForSequenceClassification, BertTokenizer
 import json
-from pydantic import BaseModel
 from fastapi.middleware.cors import CORSMiddleware
 
 # FastAPI 애플리케이션 설정
@@ -46,6 +48,7 @@ class Article(Base):
     date = Column(Integer)  # MySQL의 INT 타입과 호환되도록 Integer 사용
     # softmax_probabilities = Column(Text)  # BERT 모델 추론 후 softmax 확률 저장
     # logits = Column(Text)  # BERT 모델 추론 후 logits 저장
+    inference = Column(JSON)
 
 # UserInfo 모델 정의
 class UserInfo(Base):
@@ -212,6 +215,52 @@ async def save_selections(request: SelectionsRequest, db: Session = Depends(get_
         import logging
         logging.error(f"Error saving selections: {e}")
         raise HTTPException(status_code=500, detail="An unexpected error occurred.")
+
+
+# 코사인 유사도 계산 함수
+def cosine_similarity(vec1, vec2):
+    dot_product = np.dot(vec1, vec2)
+    norm_vec1 = np.linalg.norm(vec1)
+    norm_vec2 = np.linalg.norm(vec2)
+    return dot_product / (norm_vec1 * norm_vec2)
+
+
+@app.get("/user_info/{user_id}")
+async def get_user_data(user_id: str, db: Session = Depends(get_db)):
+    user = db.query(UserInfo).filter(UserInfo.user_id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    return user
+
+
+@app.get("/todayNewsList/{user_id}/{date}")
+async def get_today_news_list(user_id: str, date: int, db: Session = Depends(get_db)):
+
+    #date = datetime.strptime(date, '%Y-%m-%d').date()
+    #date_int = int(date.strftime('%Y%m%d'))
+
+    news_list = db.query(Article).filter(Article.date == date).all()
+
+    if not news_list:
+        raise HTTPException(status_code=404, detail="No news found for this date")
+
+    user = db.query(UserInfo).filter(UserInfo.user_id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    user_logits_list = json.loads(user.average_logits)
+    user_logits = np.array(user_logits_list).astype(float)
+
+    news_with_similarity = []
+    for news in news_list:
+        news_logits = np.array(news.inference)
+        similarity = cosine_similarity(user_logits, news_logits)
+        news_with_similarity.append((news, similarity))
+
+    news_with_similarity.sort(key=lambda x: x[1])
+    top_3_news = [news for news, similarity in news_with_similarity[:3]]
+
+    return top_3_news
 
 
 # DB 초기화

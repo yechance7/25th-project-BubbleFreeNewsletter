@@ -2,6 +2,7 @@ import React from 'react';
 import { BrowserRouter as Router, Route, Routes, Link, useLocation } from 'react-router-dom';
 import HomePage from './pages/HomePage';
 import MyPage from './pages/MyPage';
+import NewsLetterPage from './pages/NewsletterPage'
 import SearchBar from './components/SearchBar';
 import './App.css';
 
@@ -15,6 +16,7 @@ const AppWrapper = () => {
                 <ul>
                     <li><Link to="/">기사 검색</Link></li>
                     <li><Link to="/mypage">내 성향 보기</Link></li>
+                    <li><Link to="/newsletter">버블프리 뉴스레터</Link></li>
                 </ul>
             </nav>
 
@@ -22,6 +24,7 @@ const AppWrapper = () => {
             <Routes>
                 <Route path="/" element={<HomePage />} />
                 <Route path="/mypage" element={<MyPage />} />
+                <Route path="/newsletter" element={<NewsLetterPage />} />
             </Routes>
 
             {/* 현재 경로가 '/'일 때만 SearchBar 렌더링 */}
