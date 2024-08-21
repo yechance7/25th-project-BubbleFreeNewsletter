@@ -2,7 +2,7 @@
 from transformers import BertForSequenceClassification, BertTokenizer
 import torch
 
-checkpoint_path = "25th-project-BubbleFreeNewsletter/checkpoints/model_epoch_4_val_loss_0.1095.pt"
+checkpoint_path = "checkpoints/model_epoch_3_val_loss_0.0895.pt"
 model = BertForSequenceClassification.from_pretrained('kpfbert', num_labels=2)
 tokenizer = BertTokenizer.from_pretrained('kpfbert')
 
@@ -14,8 +14,8 @@ model.to(device)
 for param in model.parameters():
     param.data = param.data.contiguous()
 
-model_save_path = "25th-project-BubbleFreeNewsletter/bubble_free_BERT"
-tokenizer_save_path = "25th-project-BubbleFreeNewsletter/bubble_free_tokenizer"
+model_save_path = "bubble_free_BERT"
+tokenizer_save_path = "bubble_free_tokenizer"
 
 # 모델 저장
 model.save_pretrained(model_save_path)

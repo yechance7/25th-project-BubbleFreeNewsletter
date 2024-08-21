@@ -39,9 +39,17 @@ def predict(model, tokenizer, content):
     model.eval()
 
     device = torch.device("cuda" if torch.cuda.is_available() else "mps")
+
+    if torch.cuda.is_available():
+        device = torch.device("cuda")
+    elif torch.backends.mps.is_available():
+        device = torch.device("mps")
+    else:
+        device = torch.device("cpu")
+
     model.to(device)
 
-    inputs = tokenizer(content, return_tensors="pt", max_length=128, truncation=True, padding="max_length")
+    inputs = tokenizer(content, return_tensors="pt", max_length=512, truncation=True, padding="max_length")
 
     inputs = {key: value.to(device) for key, value in inputs.items()}
 
@@ -52,8 +60,8 @@ def predict(model, tokenizer, content):
         softmax = nn.Softmax(dim=1)  # dim=1은 클래스 차원에 대해 softmax를 적용
         preds = softmax(logits)
 
-    logits = logits.cpu().numpy().round(4)
-    preds = logits.cpu().numpy().round(4)
+    # logits = logits.cpu().numpy().round(4)
+    # preds = logits.cpu().numpy().round(4)
 
     return json.dumps(preds.tolist())
 
