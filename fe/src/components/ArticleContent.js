@@ -7,7 +7,7 @@ const ArticleContent = ({ news }) => {
             <div style={styles.spacer}></div>
             {/* 이미지 추가 */}
             <img 
-                src="https://www.chosun.com/resizer/v2/7W5LX4YPDFNVPKAASOVJR4LNMY.JPG?auth=aa7853ade33d88fe48b8dc9fce7f3ea0d599c8be5e5aa224c5a1ce2068aa85b9&width=616" 
+                src={news.image}
                 alt="News Image" 
                 style={styles.image}
             />

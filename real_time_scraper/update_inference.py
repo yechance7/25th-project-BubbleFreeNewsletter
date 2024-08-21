@@ -49,12 +49,13 @@ def predict(model, tokenizer, content):
         outputs = model(**inputs)
         logits = outputs.logits
 
-        #softmax = nn.Softmax(dim=1)  # dim=1은 클래스 차원에 대해 softmax를 적용
-        #preds = softmax(logits)
+        softmax = nn.Softmax(dim=1)  # dim=1은 클래스 차원에 대해 softmax를 적용
+        preds = softmax(logits)
 
     logits = logits.cpu().numpy().round(4)
+    preds = logits.cpu().numpy().round(4)
 
-    return json.dumps(logits.tolist())
+    return json.dumps(preds.tolist())
 
 def add_inference_column(cursor):
     """

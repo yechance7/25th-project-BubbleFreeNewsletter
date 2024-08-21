@@ -48,6 +48,7 @@ class Article(Base):
     date = Column(Integer)  # MySQL의 INT 타입과 호환되도록 Integer 사용
     # softmax_probabilities = Column(Text)  # BERT 모델 추론 후 softmax 확률 저장
     # logits = Column(Text)  # BERT 모델 추론 후 logits 저장
+    image = Column(String(255))
     inference = Column(JSON)
 
 # UserInfo 모델 정의
@@ -71,8 +72,8 @@ def get_db():
         db.close()
 
 # BERT 모델 및 토크나이저 로드
-model_name_or_path = "../bubble_free_BERT"
-tokenizer_name_or_path = "../bubble_free_tokenizer"
+model_name_or_path = "../module/bubble_free_BERT"
+tokenizer_name_or_path = "../module/bubble_free_tokenizer"
 
 model = BertForSequenceClassification.from_pretrained(model_name_or_path)
 tokenizer = BertTokenizer.from_pretrained(tokenizer_name_or_path)
@@ -253,7 +254,7 @@ async def get_today_news_list(user_id: str, date: int, db: Session = Depends(get
 
     news_with_similarity = []
     for news in news_list:
-        news_logits = np.array(news.inference)
+        news_logits = np.array(news.inference[0])
         similarity = cosine_similarity(user_logits, news_logits)
         news_with_similarity.append((news, similarity))
 
