@@ -46,12 +46,15 @@ export const fetchUserData = async (userId) => {
     }
 };
 
-export const fetchTodayNewsList = async (userId) => {
+export const fetchNewsListByDate = async (userId, date) => {
     try {
-        const response = await axios.get(`${API_URL}/todayNewsList/${userId}`);
-        return response.data;
+        const response = await fetch(`${API_URL}/todayNewsList/${userId}/${date}`);
+        if (!response.ok) {
+            throw new Error('Network response was not ok');
+        }
+        return response.json();
     } catch (error) {
-        console.error('Error fetching today\'s news list:', error);
+        console.error('Error fetching news list:', error);
         throw error;
     }
 };

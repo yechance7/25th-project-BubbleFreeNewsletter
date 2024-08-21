@@ -4,7 +4,6 @@ const ArticleContent = ({ news }) => {
     return (
         <div style={styles.container}>
             <h2 style={styles.title}>{news.title}</h2>
-            {/* 제목과 이미지 사이의 공간 */}
             <div style={styles.spacer}></div>
             {/* 이미지 추가 */}
             <img 
