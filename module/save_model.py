@@ -1,20 +1,21 @@
+# 변경사항 저장 하지 않기
 from transformers import BertForSequenceClassification, BertTokenizer
 import torch
 
-checkpoint_path = "checkpoints/20240816_122359/model_epoch_4_val_loss_0.1095.pt"
+checkpoint_path = "25th-project-BubbleFreeNewsletter/checkpoints/model_epoch_4_val_loss_0.1095.pt"
 model = BertForSequenceClassification.from_pretrained('kpfbert', num_labels=2)
 tokenizer = BertTokenizer.from_pretrained('kpfbert')
-model.load_state_dict(torch.load(checkpoint_path))
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+model.load_state_dict(torch.load(checkpoint_path, map_location=device))
 model.to(device)
 
 # 모델의 모든 파라미터에 .contiguous()를 적용
 for param in model.parameters():
     param.data = param.data.contiguous()
 
-model_save_path = "bubble_free_BERT"
-tokenizer_save_path = "bubble_free_tokenizer"
+model_save_path = "25th-project-BubbleFreeNewsletter/bubble_free_BERT"
+tokenizer_save_path = "25th-project-BubbleFreeNewsletter/bubble_free_tokenizer"
 
 # 모델 저장
 model.save_pretrained(model_save_path)

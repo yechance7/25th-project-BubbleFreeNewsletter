@@ -15,6 +15,11 @@ src/article_data/train_article.csv.zip
 /src/data/
 /src/test
 
+bubble_free_BERT/
+bubble_free_tokenizer/
+json/
+checkpoints/
+
 
 .gitignore
 .vscode

@@ -34,3 +34,24 @@ export const getArticle = async (articleId) => {
         throw error;
     }
 };
+
+
+export const fetchUserData = async (userId) => {
+    try {
+        const response = await axios.get(`${API_URL}/user_info/${userId}`);
+        return response.data;
+    } catch (error) {
+        console.error('Error fetching user data:', error);
+        throw error;
+    }
+};
+
+export const fetchTodayNewsList = async (userId) => {
+    try {
+        const response = await axios.get(`${API_URL}/todayNewsList/${userId}`);
+        return response.data;
+    } catch (error) {
+        console.error('Error fetching today\'s news list:', error);
+        throw error;
+    }
+};
