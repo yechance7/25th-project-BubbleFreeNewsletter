@@ -233,37 +233,31 @@ async def get_user_data(user_id: str, db: Session = Depends(get_db)):
     return user
 
 
-@app.get("/todayNewsList/{user_id}")
-async def get_today_news_list(user_id: str, db: Session = Depends(get_db)):
+@app.get("/todayNewsList/{user_id}/{date}")
+async def get_today_news_list(user_id: str, date: int, db: Session = Depends(get_db)):
 
-    today = datetime.now().date()
-    today_int = int(today.strftime('%Y%m%d'))
+    #date = datetime.strptime(date, '%Y-%m-%d').date()
+    #date_int = int(date.strftime('%Y%m%d'))
 
-    news_list = db.query(Article).filter(Article.date == today_int).all()
+    news_list = db.query(Article).filter(Article.date == date).all()
 
     if not news_list:
-        raise HTTPException(status_code=404, detail="No news found for today")
+        raise HTTPException(status_code=404, detail="No news found for this date")
 
-    # 유저 데이터 가져오기
     user = db.query(UserInfo).filter(UserInfo.user_id == user_id).first()
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
     
-    user_logits_list = json.loads(user.average_logits) # avg logit of user
+    user_logits_list = json.loads(user.average_logits)
     user_logits = np.array(user_logits_list).astype(float)
 
-    # cosine similarity를 계산하여 가장 작은 값 3개 선택
     news_with_similarity = []
     for news in news_list:
-        #news_logits_list = json.loads(news.inference)
-        #news_logits = np.array(news_logits)
         news_logits = np.array(news.inference)
-        
         similarity = cosine_similarity(user_logits, news_logits)
         news_with_similarity.append((news, similarity))
 
-    # cosine similarity가 가장 작은 3개 뉴스 선택
-    news_with_similarity.sort(key=lambda x: x[1])  # 오름차순 정렬
+    news_with_similarity.sort(key=lambda x: x[1])
     top_3_news = [news for news, similarity in news_with_similarity[:3]]
 
     return top_3_news
