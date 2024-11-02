@@ -3,11 +3,13 @@
 Please refer to [필터버블 해소를 위한 뉴스레터](docs/project_final.pdf) for detailed project information.
 
 ## Prerequisites
+ ```bash
 - vessel server : 3090 GPU
 - python==3.10
 - pytorch==1.12.1
 - CUDA==11.5
 - transformers==4.44.0
+ ```
 
 ## Directory
    ```bash
@@ -89,6 +91,7 @@ Please refer to [필터버블 해소를 위한 뉴스레터](docs/project_final.
     ├── data
     ├── preprocessing
     ├── raw_data
+```
     
 
 ## Team Operation and Collaboration
